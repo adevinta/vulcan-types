@@ -136,7 +136,7 @@ func TestIsHost(t *testing.T) {
 	}
 }
 
-func TestIsURL(t *testing.T) {
+func TestIsWebAddress(t *testing.T) {
 	tests := []struct {
 		name   string
 		target string
@@ -146,6 +146,21 @@ func TestIsURL(t *testing.T) {
 			name:   "URL",
 			target: "http://127.0.0.1",
 			want:   true,
+		},
+		{
+			name:   "FTP",
+			target: "ftp://127.0.0.1",
+			want:   false,
+		},
+		{
+			name:   "URL with empty scheme (IP)",
+			target: "127.0.0.1:8080",
+			want:   false,
+		},
+		{
+			name:   "URL with empty scheme (Hostname)",
+			target: "localhost:8080",
+			want:   false,
 		},
 		{
 			name:   "Path",
@@ -166,7 +181,7 @@ func TestIsURL(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			got := IsURL(tt.target)
+			got := IsWebAddress(tt.target)
 			if got != tt.want {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
