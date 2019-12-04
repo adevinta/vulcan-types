@@ -38,9 +38,22 @@ func IsHost(target string) bool {
 }
 
 // IsURL returns true if the target is an absolute URL (it has a non-empty scheme).
+//
+// This method is kept to don't break compatibility, use IsWebAddress instead.
 func IsURL(target string) bool {
+	return IsWebAddress(target)
+}
+
+// IsWebAddress returns true if the target is an absolute URL.
+//
+// - It has a non-empty scheme (http or https)
+// - It has a non-empty hostname
+func IsWebAddress(target string) bool {
 	u, err := url.ParseRequestURI(target)
-	return err == nil && u.IsAbs()
+	if err != nil {
+		return false
+	}
+	return u.IsAbs() && (u.Scheme == "https" || u.Scheme == "http") && u.Hostname() != ""
 }
 
 // IsAWSARN returns true if the target is an AWS ARN.
