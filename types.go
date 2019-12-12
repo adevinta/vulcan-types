@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -42,6 +43,15 @@ func IsHost(target string) bool {
 // This method is kept to don't break compatibility, use IsWebAddress instead.
 func IsURL(target string) bool {
 	return IsWebAddress(target)
+}
+
+// IsGitRepository returns true if the target has the format of a Git repository.
+func IsGitRepository(target string) bool {
+	matched, err := regexp.MatchString(
+		`((git|ssh|http(s)?)|(git@[\w\.]+))(:(//)?)([\w\.@\:/\-~]+)(\.git)(/)?`,
+		target,
+	)
+	return matched && err == nil
 }
 
 // IsWebAddress returns true if the target is an absolute URL.
