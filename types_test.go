@@ -242,6 +242,199 @@ func TestIsDockerImage(t *testing.T) {
 	}
 }
 
+func TestIsGitRepository(t *testing.T) {
+	tests := []struct {
+		name   string
+		target string
+		want   bool
+	}{
+		{
+			name:   "Github HTTPS",
+			target: "https://github.com/user/project.git",
+			want:   true,
+		},
+		{
+			name:   "Github HTTP",
+			target: "http://github.com/user/project.git",
+			want:   true,
+		},
+		{
+			name:   "IP SSH",
+			target: "git@192.168.101.127:user/project.git",
+			want:   true,
+		},
+		{
+			name:   "IP HTTPS",
+			target: "https://192.168.101.127/user/project.git",
+			want:   true,
+		},
+		{
+			name:   "IP HTTP",
+			target: "http://192.168.101.127/user/project.git",
+			want:   true,
+		},
+		{
+			name:   "Host Port User Path SSH",
+			target: "ssh://user@host.xz:port/path/to/repo.git/",
+			want:   true,
+		},
+		{
+			name:   "Host User Path SSH",
+			target: "ssh://user@host.xz/path/to/repo.git/",
+			want:   true,
+		},
+		{
+			name:   "Host Port Path SSH",
+			target: "ssh://host.xz:port/path/to/repo.git/",
+			want:   true,
+		},
+		{
+			name:   "Host Path SSH",
+			target: "ssh://host.xz/path/to/repo.git/",
+			want:   true,
+		},
+		{
+			name:   "Host User Tilde Path SSH",
+			target: "ssh://user@host.xz/~user/path/to/repo.git/",
+			want:   true,
+		},
+		{
+			name:   "Host Tilde Path SSH",
+			target: "ssh://host.xz/~user/path/to/repo.git/",
+			want:   true,
+		},
+		{
+			name:   "Host User Lone Tilde Path SSH",
+			target: "ssh://user@host.xz/~/path/to/repo.git",
+			want:   true,
+		},
+		{
+			name:   "Host Lone Tilde Path SSH",
+			target: "ssh://host.xz/~/path/to/repo.git",
+			want:   true,
+		},
+		{
+			name:   "Host Path Git",
+			target: "git://host.xz/path/to/repo.git/",
+			want:   true,
+		},
+		{
+			name:   "Host Tilde Path Git",
+			target: "git://host.xz/~user/path/to/repo.git/",
+			want:   true,
+		},
+		{
+			name:   "Host Path HTTP",
+			target: "http://host.xz/path/to/repo.git/",
+			want:   true,
+		},
+		{
+			name:   "Host Path HTTPS",
+			target: "https://host.xz/path/to/repo.git/",
+			want:   true,
+		},
+		{
+			name:   "Absolute Path",
+			target: "/path/to/repo.git/",
+			want:   false,
+		},
+		{
+			name:   "Relative Path",
+			target: "path/to/repo.git/",
+			want:   false,
+		},
+		{
+			name:   "Tilde Path",
+			target: "~/path/to/repo.git",
+			want:   false,
+		},
+		{
+			name:   "Absolute Path File Protocol",
+			target: "file:///path/to/repo.git/",
+			want:   false,
+		},
+		{
+			name:   "Tilde Path File Protocol",
+			target: "file://~/path/to/repo.git/",
+			want:   false,
+		},
+		{
+			name:   "User Host Absolute Path SSH URI",
+			target: "user@host.xz:/path/to/repo.git/",
+			want:   false,
+		},
+		{
+			name:   "User Host Relative Path SSH URI",
+			target: "user@host.xz:path/to/repo.git",
+			want:   false,
+		},
+		{
+			name:   "Host Path SSH URI",
+			target: "host.xz:/path/to/repo.git/",
+			want:   false,
+		},
+		{
+			name:   "User Host Tilde Path SSH URI",
+			target: "user@host.xz:~user/path/to/repo.git/",
+			want:   false,
+		},
+		{
+			name:   "Host Tilde Path SSH URI",
+			target: "host.xz:~user/path/to/repo.git/",
+			want:   false,
+		},
+		{
+			name:   "Host Path SSH URI",
+			target: "host.xz:path/to/repo.git",
+			want:   false,
+		},
+		{
+			name:   "Rsync",
+			target: "rsync://host.xz/path/to/repo.git/",
+			want:   false,
+		},
+		{
+			name:   "Host Web Address",
+			target: "https://www.adevinta.com",
+			want:   false,
+		},
+		{
+			name:   "Host Path Web Address",
+			target: "https://www.adevinta.com/path/to/directory",
+			want:   false,
+		},
+		{
+			name:   "IP Web Address",
+			target: "http://127.0.0.1",
+			want:   false,
+		},
+		{
+			name:   "IP Path Web Address",
+			target: "http://127.0.0.1/path/to/directory",
+			want:   false,
+		},
+		{
+			name:   "AWS ARN",
+			target: "arn:aws:iam::123456789012:root",
+			want:   false,
+		},
+		{
+			name:   "Docker Image",
+			target: "registry.hub.docker.com/metasploitframework/metasploit-framework",
+			want:   false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			got := IsGitRepository(tt.target)
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 /*
 //   Valid: registry.hub.docker.com/metasploitframework/metasploit-framework:latest
 //   Valid: registry.hub.docker.com/metasploitframework/metasploit-framework
