@@ -1,9 +1,9 @@
-dist: trusty
 language: go
 go:
-  - 1.13.4
+  - 1.15
 env:
   global:
   - CGO_ENABLED=0
-  - GO111MODULE=on
 go_import_path: github.com/adevinta/vulcan-types
+install: _script/bootstrap
+script: _script/cibuild
