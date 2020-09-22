@@ -85,6 +85,14 @@ func IsAWSARN(target string) bool {
 //   Not valid: metasploitframework/metasploit-framework
 //   Not valid: debian
 func IsDockerImage(target string) bool {
+	// If the target is a CIDR we assume it's not a Docker Image.
+	// This is not strictly correct, but will discard conflicts with
+	// CIDR ranges that comply with Docker Images but are improbable.
+	// E.g.: 192.0.2.1/32
+	if IsCIDR(target) {
+		return false
+	}
+
 	n, err := reference.ParseNamed(target)
 	if err != nil {
 		return false
@@ -92,6 +100,17 @@ func IsDockerImage(target string) bool {
 
 	if reference.Domain(n) == "" {
 		return false
+	}
+
+	// All registry path components must match with this regexp.
+	// Reference: https://docs.docker.com/registry/spec/api/#overview
+	r, _ := regexp.Compile("[a-z0-9]+(?:[._-][a-z0-9]+)*")
+
+	pathParts := strings.Split(reference.Path(n), "/")
+	for _, p := range pathParts {
+		if !r.MatchString(p) {
+			return false
+		}
 	}
 
 	return true

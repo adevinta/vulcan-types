@@ -236,6 +236,11 @@ func TestIsDockerImage(t *testing.T) {
 			want:   false,
 		},
 		{
+			name:   "IPRange",
+			target: "192.0.2.1/32",
+			want:   false,
+		},
+		{
 			name:   "Garbage",
 			target: "31337",
 			want:   false,
