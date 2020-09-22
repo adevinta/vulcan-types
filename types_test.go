@@ -216,6 +216,16 @@ func TestIsDockerImage(t *testing.T) {
 			want:   false,
 		},
 		{
+			name:   "3 parts path registry",
+			target: "registry.hub.docker.com/hdmoore/metasploitframework/metasploit-framework",
+			want:   true,
+		},
+		{
+			name:   "Single path registry",
+			target: "registry.hub.docker.com/metasploit-framework",
+			want:   true,
+		},
+		{
 			name:   "Path",
 			target: "/etc/passwd",
 			want:   false,

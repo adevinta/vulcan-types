@@ -78,6 +78,8 @@ func IsAWSARN(target string) bool {
 //   Valid: registry.hub.docker.com/metasploitframework/metasploit-framework:latest
 //   Valid: registry.hub.docker.com/metasploitframework/metasploit-framework
 //   Valid: registry.hub.docker.com/library/debian
+//   Valid: registry.hub.docker.com/path1/path2/artifact (compliant with V2 spec)
+//   Valid: registry.hub.docker.com/artifact (compliant with V2 spec)
 //   Valid: localhost:5500/library/debian
 //   Not valid: metasploitframework/metasploit-framework:latest
 //   Not valid: metasploitframework/metasploit-framework
@@ -92,9 +94,7 @@ func IsDockerImage(target string) bool {
 		return false
 	}
 
-	p := reference.Path(n)
-	parts := strings.Split(p, "/")
-	return len(parts) == 2
+	return true
 }
 
 // IsDomainName returns true if a query to a domain server returns a SOA record for the
