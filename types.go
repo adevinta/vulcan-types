@@ -85,8 +85,10 @@ func IsAWSARN(target string) bool {
 //   Not valid: metasploitframework/metasploit-framework
 //   Not valid: debian
 func IsDockerImage(target string) bool {
-	// If the target is a CIDR we assume
-	// it's not a Docker Image.
+	// If the target is a CIDR we assume it's not a Docker Image.
+	// This is not strictly correct, but will discard conflicts with
+	// CIDR ranges that comply with Docker Images but are improbable.
+	// E.g.: 192.0.2.1/32
 	if IsCIDR(target) {
 		return false
 	}
