@@ -94,6 +94,17 @@ func IsDockerImage(target string) bool {
 		return false
 	}
 
+	// All registry path components must match with this regexp.
+	// Reference: https://docs.docker.com/registry/spec/api/#overview
+	r, _ := regexp.Compile("[a-z0-9]+(?:[._-][a-z0-9]+)*")
+
+	pathParts := strings.Split(reference.Path(n), "/")
+	for _, p := range pathParts {
+		if !r.MatchString(p) {
+			return false
+		}
+	}
+
 	return true
 }
 
