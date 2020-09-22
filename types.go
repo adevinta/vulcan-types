@@ -85,6 +85,12 @@ func IsAWSARN(target string) bool {
 //   Not valid: metasploitframework/metasploit-framework
 //   Not valid: debian
 func IsDockerImage(target string) bool {
+	// If the target is a CIDR we assume
+	// it's not a Docker Image.
+	if IsCIDR(target) {
+		return false
+	}
+
 	n, err := reference.ParseNamed(target)
 	if err != nil {
 		return false
