@@ -140,14 +140,27 @@ func hasSOARecord(target string) (bool, error) {
 
 	m := &dns.Msg{}
 	m.SetQuestion(target, dns.TypeSOA)
+	m.SetEdns0(dns.DefaultMsgSize, false)
 	c := dns.Client{}
 	var r *dns.Msg
 	// Try to get an answer using local configured dns servers.
 	for _, srv := range dnsConf.Servers {
 		r = nil
-		r, _, err = c.Exchange(m, fmt.Sprintf("%s:%s", srv, dnsConf.Port))
+		address := fmt.Sprintf("%s:%s", srv, dnsConf.Port)
+
+		r, _, err = c.Exchange(m, address)
 		if err != nil {
 			return false, err
+		}
+
+		// If UDP response was truncated
+		// then try through TCP.
+		if r.Truncated {
+			c.Net = "tcp"
+			r, _, err = c.Exchange(m, address)
+			if err != nil {
+				return false, err
+			}
 		}
 
 		if r.Rcode == dns.RcodeSuccess && r != nil {
