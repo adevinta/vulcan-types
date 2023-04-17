@@ -261,6 +261,49 @@ func TestIsDockerImage(t *testing.T) {
 	}
 }
 
+func TestIsAWSARN(t *testing.T) {
+	tests := []struct {
+		name   string
+		target string
+		want   bool
+	}{
+		{
+			name:   "AWS ARN Account",
+			target: "arn:aws:iam::123456789012:root",
+			want:   true,
+		},
+		{
+			name:   "AWS ARN S3",
+			target: "arn:aws:s3:::my_corporate_bucket/Development/*",
+			want:   true,
+		},
+		{
+			name:   "AWS ARN VPC",
+			target: "arn:aws:ec2:us-east-1:123456789012:vpc/vpc-0e9801d129EXAMPLE",
+			want:   true,
+		},
+		{
+			name:   "IP Path Web Address",
+			target: "http://127.0.0.1/path/to/directory",
+			want:   false,
+		},
+		{
+			name:   "Docker Image",
+			target: "registry.hub.docker.com/metasploitframework/metasploit-framework",
+			want:   false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			got := IsAWSARN(tt.target)
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestIsGitRepository(t *testing.T) {
 	tests := []struct {
 		name   string
