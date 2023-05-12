@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/aws/aws-sdk-go v1.44.244
 	github.com/docker/distribution v2.8.2+incompatible
-	github.com/miekg/dns v1.1.53
+	github.com/miekg/dns v1.1.54
 )
 
 require (
