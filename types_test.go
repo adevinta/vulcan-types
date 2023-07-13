@@ -4,7 +4,11 @@ Copyright 2019 Adevinta
 
 package types
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+)
 
 func TestIsIP(t *testing.T) {
 	tests := []struct {
@@ -577,6 +581,41 @@ func TestIsHostname(t *testing.T) {
 			got := IsHostname(tt.target)
 			if got != tt.want {
 				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDetectAssetTypes(t *testing.T) {
+	var tests = []struct {
+		identifier     string
+		wantAssetTypes []string
+		wantNilErr     bool
+	}{
+		{"arn:aws:iam::123456789012:root", []string{"AWSAccount"}, true},
+		{"192.0.2.1", []string{"IP"}, true},
+		{"192.0.2.1/32", []string{"IP"}, true},
+		{"192.0.2.0/24", []string{"IPRange"}, true},
+		{"vulcan.mpi-internal.com", []string{"DomainName"}, true},
+		{"adevinta.com", []string{"Hostname", "DomainName"}, true},
+		{"www.adevinta.com", []string{"Hostname"}, true},
+		{"not.a.host.name", nil, true},
+		{"containers.adevinta.com/vulcan/application:5.5.2", []string{"DockerImage"}, true},
+		{"registry-1.docker.io/library/postgres:latest", []string{"DockerImage"}, true},
+		{"finntech/docker-elasticsearch-kubernetes", nil, true},
+		{"https://www.example.com", []string{"Hostname", "WebAddress"}, true},
+		{"registry-1.docker.io/artifact", []string{"DockerImage"}, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.identifier, func(t *testing.T) {
+			got, err := DetectAssetTypes(tt.identifier)
+			if (err == nil) != tt.wantNilErr {
+				t.Errorf("unexpected error value: %v", err)
+			}
+
+			if diff := cmp.Diff(tt.wantAssetTypes, got); diff != "" {
+				t.Errorf("configs mismatch (-want +got):\n%v", diff)
 			}
 		})
 	}

@@ -79,15 +79,16 @@ func IsAWSARN(target string) bool {
 // IsDockerImage returns true if the target is a Docker image.
 //
 // The registry must be specified, while the tag is optional:
-//   Valid: registry.hub.docker.com/metasploitframework/metasploit-framework:latest
-//   Valid: registry.hub.docker.com/metasploitframework/metasploit-framework
-//   Valid: registry.hub.docker.com/library/debian
-//   Valid: registry.hub.docker.com/path1/path2/artifact (compliant with V2 spec)
-//   Valid: registry.hub.docker.com/artifact (compliant with V2 spec)
-//   Valid: localhost:5500/library/debian
-//   Not valid: metasploitframework/metasploit-framework:latest
-//   Not valid: metasploitframework/metasploit-framework
-//   Not valid: debian
+//
+//	Valid: registry.hub.docker.com/metasploitframework/metasploit-framework:latest
+//	Valid: registry.hub.docker.com/metasploitframework/metasploit-framework
+//	Valid: registry.hub.docker.com/library/debian
+//	Valid: registry.hub.docker.com/path1/path2/artifact (compliant with V2 spec)
+//	Valid: registry.hub.docker.com/artifact (compliant with V2 spec)
+//	Valid: localhost:5500/library/debian
+//	Not valid: metasploitframework/metasploit-framework:latest
+//	Not valid: metasploitframework/metasploit-framework
+//	Not valid: debian
 func IsDockerImage(target string) bool {
 	// If the target is a CIDR we assume it's not a Docker Image.
 	// This is not strictly correct, but will discard conflicts with
@@ -198,4 +199,72 @@ func IsHostname(target string) bool {
 	}
 
 	return len(r) > 0
+}
+
+// DetectAssetTypes detects the asset types from a identifier.
+func DetectAssetTypes(identifier string) ([]string, error) {
+	if IsAWSARN(identifier) {
+		return []string{"AWSAccount"}, nil
+	}
+
+	if IsDockerImage(identifier) {
+		return []string{"DockerImage"}, nil
+	}
+
+	if IsGitRepository(identifier) {
+		return []string{"GitRepository"}, nil
+	}
+
+	if IsIP(identifier) {
+		return []string{"IP"}, nil
+	}
+
+	if IsCIDR(identifier) {
+		assetType := "IPRange"
+
+		// In case the CIDR has a /32 mask, remove the mask
+		// and add the asset as an IP.
+		if IsHost(identifier) {
+			assetType = "IP"
+		}
+
+		return []string{assetType}, nil
+	}
+
+	var assetTypes []string
+
+	isWeb := false
+	if IsWebAddress(identifier) {
+		isWeb = true
+
+		// From a URL like https://adevinta.com not only a WebAddress
+		// type can be extracted, also a hostname (adevinta.com) and
+		// potentially a domain name.
+		u, err := url.ParseRequestURI(identifier)
+		if err != nil {
+			return nil, err
+		}
+		identifier = u.Hostname() // Overwrite identifier to check for hostname and domain.
+	}
+
+	if IsHostname(identifier) {
+		assetTypes = append(assetTypes, "Hostname")
+
+		// Add WebAddress type only for URLs with valid hostnames.
+		if isWeb {
+			// At this point a.identifier contains the original identifier,
+			// not the overwritten identifier.
+			assetTypes = append(assetTypes, "WebAddress")
+		}
+	}
+
+	ok, err := IsDomainName(identifier)
+	if err != nil {
+		return nil, fmt.Errorf("cannot guess if the asset is a domain: %v", err)
+	}
+	if ok {
+		assetTypes = append(assetTypes, "DomainName")
+	}
+
+	return assetTypes, nil
 }
