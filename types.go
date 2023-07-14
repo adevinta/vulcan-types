@@ -203,7 +203,7 @@ func IsHostname(target string) bool {
 
 type AssetType string
 
-// Asset Types for vulcan assets.
+// Asset types for vulcan assets.
 const (
 	AWSAccount    AssetType = "AWSAccount"
 	DockerImage   AssetType = "DockerImage"
