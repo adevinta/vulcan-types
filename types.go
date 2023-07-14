@@ -60,8 +60,8 @@ func IsGitRepository(target string) bool {
 
 // IsWebAddress returns true if the target is an absolute URL.
 //
-// - It has a non-empty scheme (http or https)
-// - It has a non-empty hostname
+//   - It has a non-empty scheme (http or https)
+//   - It has a non-empty hostname
 func IsWebAddress(target string) bool {
 	u, err := url.ParseRequestURI(target)
 	if err != nil {
