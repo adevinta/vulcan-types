@@ -308,6 +308,43 @@ func TestIsAWSARN(t *testing.T) {
 	}
 }
 
+func TestIsAWSAccount(t *testing.T) {
+	tests := []struct {
+		name   string
+		target string
+		want   bool
+	}{
+		{
+			name:   "AWS ARN Account",
+			target: "arn:aws:iam::123456789012:root",
+			want:   true,
+		},
+		{
+			name:   "AWS ARN S3",
+			target: "arn:aws:s3:::bucket_name/key_name",
+			want:   false,
+		},
+		{
+			name:   "AWS ARN VPC",
+			target: "arn:aws:ec2:us-east-1:123456789012:vpc/vpc-0e9801d129EXAMPLE",
+			want:   false,
+		},
+		{
+			name:   "invalid AWS ARN",
+			target: "arn:iam::123456789012:root",
+			want:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IsAWSAccount(tt.target)
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestIsGitRepository(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -597,6 +634,12 @@ func TestDetectAssetTypes(t *testing.T) {
 			name:           "valid AWS account",
 			identifier:     "arn:aws:iam::123456789012:root",
 			wantAssetTypes: []AssetType{AWSAccount},
+			wantNilErr:     true,
+		},
+		{
+			name:           "invalid AWS account",
+			identifier:     "arn:aws:s3:::bucket_name/key_name",
+			wantAssetTypes: nil,
 			wantNilErr:     true,
 		},
 		{

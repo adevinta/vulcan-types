@@ -76,6 +76,17 @@ func IsAWSARN(target string) bool {
 	return err == nil
 }
 
+// IsAWSAccount returns true if the target is an AWS account.
+func IsAWSAccount(target string) bool {
+	targetARN, err := arn.Parse(target)
+	if err != nil {
+		return false
+	}
+
+	// An account ARN has the format "arn:aws:iam::123456789012:root".
+	return targetARN.Service == "iam" && targetARN.Resource == "root"
+}
+
 // IsDockerImage returns true if the target is a Docker image.
 //
 // The registry must be specified, while the tag is optional:
@@ -249,7 +260,7 @@ func Parse(assetType string) (t AssetType, err error) {
 
 // DetectAssetTypes detects the asset types from an identifier.
 func DetectAssetTypes(identifier string) ([]AssetType, error) {
-	if IsAWSARN(identifier) {
+	if IsAWSAccount(identifier) {
 		return []AssetType{AWSAccount}, nil
 	}
 
