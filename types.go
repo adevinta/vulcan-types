@@ -80,15 +80,15 @@ func IsAWSARN(target string) bool {
 //
 // The registry must be specified, while the tag is optional:
 //
-//	Valid: registry.hub.docker.com/metasploitframework/metasploit-framework:latest
-//	Valid: registry.hub.docker.com/metasploitframework/metasploit-framework
-//	Valid: registry.hub.docker.com/library/debian
-//	Valid: registry.hub.docker.com/path1/path2/artifact (compliant with V2 spec)
-//	Valid: registry.hub.docker.com/artifact (compliant with V2 spec)
-//	Valid: localhost:5500/library/debian
-//	Not valid: metasploitframework/metasploit-framework:latest
-//	Not valid: metasploitframework/metasploit-framework
-//	Not valid: debian
+//   - Valid: registry.hub.docker.com/metasploitframework/metasploit-framework:latest
+//   - Valid: registry.hub.docker.com/metasploitframework/metasploit-framework
+//   - Valid: registry.hub.docker.com/library/debian
+//   - Valid: registry.hub.docker.com/path1/path2/artifact (compliant with V2 spec)
+//   - Valid: registry.hub.docker.com/artifact (compliant with V2 spec)
+//   - Valid: localhost:5500/library/debian
+//   - Not valid: metasploitframework/metasploit-framework:latest
+//   - Not valid: metasploitframework/metasploit-framework
+//   - Not valid: debian
 func IsDockerImage(target string) bool {
 	// If the target is a CIDR we assume it's not a Docker Image.
 	// This is not strictly correct, but will discard conflicts with
@@ -201,37 +201,83 @@ func IsHostname(target string) bool {
 	return len(r) > 0
 }
 
-// DetectAssetTypes detects the asset types from a identifier.
-func DetectAssetTypes(identifier string) ([]string, error) {
+type AssetType string
+
+// Asset Types for vulcan assets.
+const (
+	AWSAccount    AssetType = "AWSAccount"
+	DockerImage   AssetType = "DockerImage"
+	GitRepository AssetType = "GitRepository"
+	IP            AssetType = "IP"
+	IPRange       AssetType = "IPRange"
+	DomainName    AssetType = "DomainName"
+	Hostname      AssetType = "Hostname"
+	WebAddress    AssetType = "WebAddress"
+)
+
+// String returns the string representation of the [AssetType].
+func (t AssetType) String() string {
+	return string(t)
+}
+
+// Parse parses a string representing an asset type into an [AssetType].
+// It returns error if the provided string does not match any known asset
+// type.
+func Parse(assetType string) (t AssetType, err error) {
+	switch AssetType(assetType) {
+	case AWSAccount:
+		t = AWSAccount
+	case DockerImage:
+		t = DockerImage
+	case GitRepository:
+		t = GitRepository
+	case IP:
+		t = IP
+	case IPRange:
+		t = IPRange
+	case Hostname:
+		t = Hostname
+	case DomainName:
+		t = DomainName
+	case WebAddress:
+		t = WebAddress
+	default:
+		err = fmt.Errorf("unknown type: %v", assetType)
+	}
+	return t, err
+}
+
+// DetectAssetTypes detects the asset types from an identifier.
+func DetectAssetTypes(identifier string) ([]AssetType, error) {
 	if IsAWSARN(identifier) {
-		return []string{"AWSAccount"}, nil
+		return []AssetType{AWSAccount}, nil
 	}
 
 	if IsDockerImage(identifier) {
-		return []string{"DockerImage"}, nil
+		return []AssetType{DockerImage}, nil
 	}
 
 	if IsGitRepository(identifier) {
-		return []string{"GitRepository"}, nil
+		return []AssetType{GitRepository}, nil
 	}
 
 	if IsIP(identifier) {
-		return []string{"IP"}, nil
+		return []AssetType{IP}, nil
 	}
 
 	if IsCIDR(identifier) {
-		assetType := "IPRange"
+		assetType := IPRange
 
 		// In case the CIDR has a /32 mask, remove the mask
 		// and add the asset as an IP.
 		if IsHost(identifier) {
-			assetType = "IP"
+			assetType = IP
 		}
 
-		return []string{assetType}, nil
+		return []AssetType{assetType}, nil
 	}
 
-	var assetTypes []string
+	var assetTypes []AssetType
 
 	isWeb := false
 	if IsWebAddress(identifier) {
@@ -244,26 +290,25 @@ func DetectAssetTypes(identifier string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		identifier = u.Hostname() // Overwrite identifier to check for hostname and domain.
+		// Overwrite identifier to check for hostname and domain.
+		identifier = u.Hostname()
 	}
 
 	if IsHostname(identifier) {
-		assetTypes = append(assetTypes, "Hostname")
+		assetTypes = append(assetTypes, Hostname)
 
 		// Add WebAddress type only for URLs with valid hostnames.
 		if isWeb {
-			// At this point a.identifier contains the original identifier,
-			// not the overwritten identifier.
-			assetTypes = append(assetTypes, "WebAddress")
+			assetTypes = append(assetTypes, WebAddress)
 		}
 	}
 
 	ok, err := IsDomainName(identifier)
 	if err != nil {
-		return nil, fmt.Errorf("cannot guess if the asset is a domain: %v", err)
+		return nil, fmt.Errorf("cannot guess if the asset is a domain: %w", err)
 	}
 	if ok {
-		assetTypes = append(assetTypes, "DomainName")
+		assetTypes = append(assetTypes, DomainName)
 	}
 
 	return assetTypes, nil

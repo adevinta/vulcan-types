@@ -588,23 +588,79 @@ func TestIsHostname(t *testing.T) {
 
 func TestDetectAssetTypes(t *testing.T) {
 	var tests = []struct {
+		name           string
 		identifier     string
-		wantAssetTypes []string
+		wantAssetTypes []AssetType
 		wantNilErr     bool
 	}{
-		{"arn:aws:iam::123456789012:root", []string{"AWSAccount"}, true},
-		{"192.0.2.1", []string{"IP"}, true},
-		{"192.0.2.1/32", []string{"IP"}, true},
-		{"192.0.2.0/24", []string{"IPRange"}, true},
-		{"vulcan.mpi-internal.com", []string{"DomainName"}, true},
-		{"adevinta.com", []string{"Hostname", "DomainName"}, true},
-		{"www.adevinta.com", []string{"Hostname"}, true},
-		{"not.a.host.name", nil, true},
-		{"containers.adevinta.com/vulcan/application:5.5.2", []string{"DockerImage"}, true},
-		{"registry-1.docker.io/library/postgres:latest", []string{"DockerImage"}, true},
-		{"finntech/docker-elasticsearch-kubernetes", nil, true},
-		{"https://www.example.com", []string{"Hostname", "WebAddress"}, true},
-		{"registry-1.docker.io/artifact", []string{"DockerImage"}, true},
+		{
+			name:           "valid arn account",
+			identifier:     "arn:aws:iam::123456789012:root",
+			wantAssetTypes: []AssetType{AWSAccount},
+			wantNilErr:     true,
+		},
+		{
+			name:           "valid ip",
+			identifier:     "192.0.2.1",
+			wantAssetTypes: []AssetType{IP},
+			wantNilErr:     true,
+		},
+		{
+			name:           "valid host",
+			identifier:     "192.0.2.1/32",
+			wantAssetTypes: []AssetType{IP},
+			wantNilErr:     true,
+		},
+		{
+			name:           "valid IP range",
+			identifier:     "192.0.2.0/24",
+			wantAssetTypes: []AssetType{IPRange},
+			wantNilErr:     true},
+		{
+			name:           "valid domain name",
+			identifier:     "vulcan.mpi-internal.com",
+			wantAssetTypes: []AssetType{DomainName},
+			wantNilErr:     true},
+		{
+			name:           "valid hostname and domain",
+			identifier:     "adevinta.com",
+			wantAssetTypes: []AssetType{Hostname, DomainName},
+			wantNilErr:     true},
+		{
+			name:           "valid domain",
+			identifier:     "www.adevinta.com",
+			wantAssetTypes: []AssetType{Hostname},
+			wantNilErr:     true},
+		{
+			name:           "not a host name",
+			identifier:     "not.a.host.name",
+			wantAssetTypes: nil,
+			wantNilErr:     true},
+		{
+			name:           "valid docker image",
+			identifier:     "containers.adevinta.com/vulcan/application:5.5.2",
+			wantAssetTypes: []AssetType{DockerImage},
+			wantNilErr:     true},
+		{
+			name:           "valid docker image external registry",
+			identifier:     "registry-1.docker.io/library/postgres:latest",
+			wantAssetTypes: []AssetType{DockerImage},
+			wantNilErr:     true},
+		{
+			name:           "invalid docker image",
+			identifier:     "finntech/docker-elasticsearch-kubernetes",
+			wantAssetTypes: nil,
+			wantNilErr:     true},
+		{
+			name:           "valid hostname and web address",
+			identifier:     "https://www.example.com",
+			wantAssetTypes: []AssetType{Hostname, WebAddress},
+			wantNilErr:     true},
+		{
+			name:           "valid artifact",
+			identifier:     "registry-1.docker.io/artifact",
+			wantAssetTypes: []AssetType{DockerImage},
+			wantNilErr:     true},
 	}
 
 	for _, tt := range tests {
