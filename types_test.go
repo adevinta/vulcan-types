@@ -320,6 +320,11 @@ func TestIsAWSAccount(t *testing.T) {
 			want:   true,
 		},
 		{
+			name:   "AWS ARN IAM",
+			target: "arn:aws:iam::123456789012:user/root",
+			want:   false,
+		},
+		{
 			name:   "AWS ARN S3",
 			target: "arn:aws:s3:::bucket_name/key_name",
 			want:   false,
