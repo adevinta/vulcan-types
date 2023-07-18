@@ -702,6 +702,12 @@ func TestDetectAssetTypes(t *testing.T) {
 			wantNilErr:     true,
 		},
 		{
+			name:           "valid docker image using docker.io",
+			identifier:     "docker.io/library/busybox",
+			wantAssetTypes: []AssetType{DockerImage},
+			wantNilErr:     true,
+		},
+		{
 			name:           "valid docker image ghcr registry",
 			identifier:     "ghcr.io/puppeteer/puppeteer",
 			wantAssetTypes: []AssetType{DockerImage},

@@ -98,6 +98,7 @@ func IsAWSAccount(target string) bool {
 //   - Valid: registry.hub.docker.com/artifact (compliant with V2 spec)
 //   - Valid: localhost:5500/library/debian
 //   - Valid: registry-1.docker.io/library/postgres:latest
+//   - Valid: docker.io/library/busybox
 //   - Valid: ghcr.io/puppeteer/puppeteer
 //   - Not valid: metasploitframework/metasploit-framework:latest
 //   - Not valid: metasploitframework/metasploit-framework
