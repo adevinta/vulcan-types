@@ -4,7 +4,11 @@ Copyright 2019 Adevinta
 
 package types
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+)
 
 func TestIsIP(t *testing.T) {
 	tests := []struct {
@@ -304,6 +308,48 @@ func TestIsAWSARN(t *testing.T) {
 	}
 }
 
+func TestIsAWSAccount(t *testing.T) {
+	tests := []struct {
+		name   string
+		target string
+		want   bool
+	}{
+		{
+			name:   "AWS ARN Account",
+			target: "arn:aws:iam::123456789012:root",
+			want:   true,
+		},
+		{
+			name:   "AWS ARN IAM",
+			target: "arn:aws:iam::123456789012:user/root",
+			want:   false,
+		},
+		{
+			name:   "AWS ARN S3",
+			target: "arn:aws:s3:::bucket_name/key_name",
+			want:   false,
+		},
+		{
+			name:   "AWS ARN VPC",
+			target: "arn:aws:ec2:us-east-1:123456789012:vpc/vpc-0e9801d129EXAMPLE",
+			want:   false,
+		},
+		{
+			name:   "invalid AWS ARN",
+			target: "arn:iam::123456789012:root",
+			want:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IsAWSAccount(tt.target)
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestIsGitRepository(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -577,6 +623,125 @@ func TestIsHostname(t *testing.T) {
 			got := IsHostname(tt.target)
 			if got != tt.want {
 				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDetectAssetTypes(t *testing.T) {
+	var tests = []struct {
+		name           string
+		identifier     string
+		wantAssetTypes []AssetType
+		wantNilErr     bool
+	}{
+		{
+			name:           "valid AWS account",
+			identifier:     "arn:aws:iam::123456789012:root",
+			wantAssetTypes: []AssetType{AWSAccount},
+			wantNilErr:     true,
+		},
+		{
+			name:           "invalid AWS account",
+			identifier:     "arn:aws:s3:::bucket_name/key_name",
+			wantAssetTypes: nil,
+			wantNilErr:     true,
+		},
+		{
+			name:           "valid IP",
+			identifier:     "192.0.2.1",
+			wantAssetTypes: []AssetType{IP},
+			wantNilErr:     true,
+		},
+		{
+			name:           "valid single IP CIDR",
+			identifier:     "192.0.2.1/32",
+			wantAssetTypes: []AssetType{IP},
+			wantNilErr:     true,
+		},
+		{
+			name:           "valid IP range",
+			identifier:     "192.0.2.0/24",
+			wantAssetTypes: []AssetType{IPRange},
+			wantNilErr:     true,
+		},
+		{
+			name:           "valid domain name",
+			identifier:     "vulcan.mpi-internal.com",
+			wantAssetTypes: []AssetType{DomainName},
+			wantNilErr:     true,
+		},
+		{
+			name:           "valid hostname and domain",
+			identifier:     "adevinta.com",
+			wantAssetTypes: []AssetType{Hostname, DomainName},
+			wantNilErr:     true,
+		},
+		{
+			name:           "valid hostname",
+			identifier:     "www.adevinta.com",
+			wantAssetTypes: []AssetType{Hostname},
+			wantNilErr:     true,
+		},
+		{
+			name:           "invalid hostname",
+			identifier:     "not.a.host.name",
+			wantAssetTypes: nil,
+			wantNilErr:     true,
+		},
+		{
+			name:           "valid docker image",
+			identifier:     "containers.adevinta.com/vulcan/application:5.5.2",
+			wantAssetTypes: []AssetType{DockerImage},
+			wantNilErr:     true,
+		},
+		{
+			name:           "valid docker image external registry",
+			identifier:     "registry-1.docker.io/library/postgres:latest",
+			wantAssetTypes: []AssetType{DockerImage},
+			wantNilErr:     true,
+		},
+		{
+			name:           "valid docker image using docker.io",
+			identifier:     "docker.io/library/busybox",
+			wantAssetTypes: []AssetType{DockerImage},
+			wantNilErr:     true,
+		},
+		{
+			name:           "valid docker image ghcr registry",
+			identifier:     "ghcr.io/puppeteer/puppeteer",
+			wantAssetTypes: []AssetType{DockerImage},
+			wantNilErr:     true,
+		},
+		{
+			name:           "invalid docker image",
+			identifier:     "finntech/docker-elasticsearch-kubernetes",
+			wantAssetTypes: nil,
+			wantNilErr:     true,
+		},
+		{
+			name:           "valid hostname and web address",
+			identifier:     "https://www.example.com",
+			wantAssetTypes: []AssetType{Hostname, WebAddress},
+			wantNilErr:     true,
+		},
+		{
+			name:           "valid docker image v2 spec",
+			identifier:     "registry-1.docker.io/artifact",
+			wantAssetTypes: []AssetType{DockerImage},
+			wantNilErr:     true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.identifier, func(t *testing.T) {
+			got, err := DetectAssetTypes(tt.identifier)
+			if (err == nil) != tt.wantNilErr {
+				t.Errorf("unexpected error value: %v", err)
+			}
+
+			if diff := cmp.Diff(tt.wantAssetTypes, got); diff != "" {
+				t.Errorf("configs mismatch (-want +got):\n%v", diff)
 			}
 		})
 	}

@@ -60,8 +60,8 @@ func IsGitRepository(target string) bool {
 
 // IsWebAddress returns true if the target is an absolute URL.
 //
-// - It has a non-empty scheme (http or https)
-// - It has a non-empty hostname
+//   - It has a non-empty scheme (http or https)
+//   - It has a non-empty hostname
 func IsWebAddress(target string) bool {
 	u, err := url.ParseRequestURI(target)
 	if err != nil {
@@ -76,18 +76,33 @@ func IsAWSARN(target string) bool {
 	return err == nil
 }
 
+// IsAWSAccount returns true if the target is an AWS account.
+func IsAWSAccount(target string) bool {
+	targetARN, err := arn.Parse(target)
+	if err != nil {
+		return false
+	}
+
+	// An account ARN has the format "arn:aws:iam::123456789012:root".
+	return targetARN.Service == "iam" && targetARN.Resource == "root"
+}
+
 // IsDockerImage returns true if the target is a Docker image.
 //
 // The registry must be specified, while the tag is optional:
-//   Valid: registry.hub.docker.com/metasploitframework/metasploit-framework:latest
-//   Valid: registry.hub.docker.com/metasploitframework/metasploit-framework
-//   Valid: registry.hub.docker.com/library/debian
-//   Valid: registry.hub.docker.com/path1/path2/artifact (compliant with V2 spec)
-//   Valid: registry.hub.docker.com/artifact (compliant with V2 spec)
-//   Valid: localhost:5500/library/debian
-//   Not valid: metasploitframework/metasploit-framework:latest
-//   Not valid: metasploitframework/metasploit-framework
-//   Not valid: debian
+//
+//   - Valid: registry.hub.docker.com/metasploitframework/metasploit-framework:latest
+//   - Valid: registry.hub.docker.com/metasploitframework/metasploit-framework
+//   - Valid: registry.hub.docker.com/library/debian
+//   - Valid: registry.hub.docker.com/path1/path2/artifact (compliant with V2 spec)
+//   - Valid: registry.hub.docker.com/artifact (compliant with V2 spec)
+//   - Valid: localhost:5500/library/debian
+//   - Valid: registry-1.docker.io/library/postgres:latest
+//   - Valid: docker.io/library/busybox
+//   - Valid: ghcr.io/puppeteer/puppeteer
+//   - Not valid: metasploitframework/metasploit-framework:latest
+//   - Not valid: metasploitframework/metasploit-framework
+//   - Not valid: debian
 func IsDockerImage(target string) bool {
 	// If the target is a CIDR we assume it's not a Docker Image.
 	// This is not strictly correct, but will discard conflicts with
@@ -198,4 +213,117 @@ func IsHostname(target string) bool {
 	}
 
 	return len(r) > 0
+}
+
+type AssetType string
+
+// Asset types for vulcan assets.
+const (
+	AWSAccount    AssetType = "AWSAccount"
+	DockerImage   AssetType = "DockerImage"
+	GitRepository AssetType = "GitRepository"
+	IP            AssetType = "IP"
+	IPRange       AssetType = "IPRange"
+	DomainName    AssetType = "DomainName"
+	Hostname      AssetType = "Hostname"
+	WebAddress    AssetType = "WebAddress"
+)
+
+// String returns the string representation of the [AssetType].
+func (t AssetType) String() string {
+	return string(t)
+}
+
+// Parse parses a string representing an asset type into an [AssetType].
+// It returns error if the provided string does not match any known asset
+// type.
+func Parse(assetType string) (t AssetType, err error) {
+	switch AssetType(assetType) {
+	case AWSAccount:
+		t = AWSAccount
+	case DockerImage:
+		t = DockerImage
+	case GitRepository:
+		t = GitRepository
+	case IP:
+		t = IP
+	case IPRange:
+		t = IPRange
+	case Hostname:
+		t = Hostname
+	case DomainName:
+		t = DomainName
+	case WebAddress:
+		t = WebAddress
+	default:
+		err = fmt.Errorf("unknown type: %v", assetType)
+	}
+	return t, err
+}
+
+// DetectAssetTypes detects the asset types from an identifier.
+func DetectAssetTypes(identifier string) ([]AssetType, error) {
+	if IsAWSAccount(identifier) {
+		return []AssetType{AWSAccount}, nil
+	}
+
+	if IsDockerImage(identifier) {
+		return []AssetType{DockerImage}, nil
+	}
+
+	if IsGitRepository(identifier) {
+		return []AssetType{GitRepository}, nil
+	}
+
+	if IsIP(identifier) {
+		return []AssetType{IP}, nil
+	}
+
+	if IsCIDR(identifier) {
+		assetType := IPRange
+
+		// In case the CIDR has a /32 mask, remove the mask
+		// and add the asset as an IP.
+		if IsHost(identifier) {
+			assetType = IP
+		}
+
+		return []AssetType{assetType}, nil
+	}
+
+	var assetTypes []AssetType
+
+	isWeb := false
+	if IsWebAddress(identifier) {
+		isWeb = true
+
+		// From a URL like https://adevinta.com not only a WebAddress
+		// type can be extracted, also a hostname (adevinta.com) and
+		// potentially a domain name.
+		u, err := url.ParseRequestURI(identifier)
+		if err != nil {
+			return nil, err
+		}
+		// Overwrite identifier to check for hostname and domain.
+		identifier = u.Hostname()
+	}
+
+	if IsHostname(identifier) {
+		assetTypes = append(assetTypes, Hostname)
+
+		// Add WebAddress type only for URLs with valid hostnames.
+		if isWeb {
+			assetTypes = append(assetTypes, WebAddress)
+		}
+	}
+
+	ok, err := IsDomainName(identifier)
+	if err != nil {
+		return nil, fmt.Errorf("cannot guess if the asset is a domain: %w", err)
+	}
+	if ok {
+		assetTypes = append(assetTypes, DomainName)
+	}
+
+	return assetTypes, nil
 }
