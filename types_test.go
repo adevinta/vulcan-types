@@ -628,6 +628,84 @@ func TestIsHostname(t *testing.T) {
 	}
 }
 
+func TestIsGCPProjectId(t *testing.T) {
+	tests := []struct {
+		name   string
+		target string
+		want   bool
+	}{
+		{
+			name:   "GCP Project ID with length equal to or greater than 6 characters",
+			target: "rabbit",
+			want:   true,
+		},
+		{
+			name:   "GCP Project ID length should not less than 6 characters",
+			target: "hello",
+			want:   false,
+		},
+		{
+			name:   "GCP Project ID with length equal to or less than 30 characters",
+			target: "bagase-crucible-bubble-gorilla",
+			want:   true,
+		},
+		{
+			name:   "GCP Project ID length should be greater than 30 characters",
+			target: "thalamus-instinct-teaching-bemadden-word",
+			want:   false,
+		},
+		{
+			name:   "GCP Project ID should only contain lowercase ASCII letters",
+			target: "macabre-MONOXIDE-bluish-biped",
+			want:   false,
+		},
+		{
+			name:   "GCP Project ID should not start with numbers",
+			target: "007bond",
+			want:   false,
+		},
+		{
+			name:   "GCP Project ID should only end with letters or digits",
+			target: "inherent-derris-",
+			want:   false,
+		},
+		{
+			name:   "GCP Project ID should only hyphens in symbols",
+			target: "feebly-chrome_belittle-eyebrow",
+			want:   false,
+		},
+		{
+			name:   "AWS ARN Account",
+			target: "arn:aws:iam::123456789012:root",
+			want:   false,
+		},
+		{
+			name:   "IP Path Web Address",
+			target: "http://127.0.0.1/path/to/directory",
+			want:   false,
+		},
+		{
+			name:   "Docker Image",
+			target: "registry.hub.docker.com/metasploitframework/metasploit-framework",
+			want:   false,
+		},
+		{
+			name:   "WebAddress",
+			target: "http://localhost:1234/",
+			want:   false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			got := IsGCPProjectId(tt.target)
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestDetectAssetTypes(t *testing.T) {
 	var tests = []struct {
 		name           string
