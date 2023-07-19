@@ -215,6 +215,28 @@ func IsHostname(target string) bool {
 	return len(r) > 0
 }
 
+// IsGCPProjectID returns true if the target is a GCP Project.
+//
+// A GCP project id is the unique, user-assigned id of the project. It must be 6 to 30 lowercase ASCII letters, digits, or hyphens.
+// It must start with a letter. Trailing hyphens are prohibited.
+//
+//	Valid: googleproject
+//	Valid: google-project
+//	Valid: google-project123
+//	Valid: google-123-project
+//	Not valid: googleProject
+//	Not valid: google_project
+//	Not valid: google-project-
+//	Not valid: 123-google-project
+func IsGCPProjectID(target string) bool {
+	matched, err := regexp.MatchString("^[a-z][-a-z0-9]{4,28}[a-z0-9]{1}$", target)
+
+	if err != nil {
+		return false
+	}
+	return matched
+}
+
 type AssetType string
 
 // Asset types for vulcan assets.
