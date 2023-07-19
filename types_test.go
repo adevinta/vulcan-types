@@ -628,7 +628,7 @@ func TestIsHostname(t *testing.T) {
 	}
 }
 
-func TestIsGCPProjectId(t *testing.T) {
+func TestIsGCPProjectID(t *testing.T) {
 	tests := []struct {
 		name   string
 		target string
@@ -640,7 +640,7 @@ func TestIsGCPProjectId(t *testing.T) {
 			want:   true,
 		},
 		{
-			name:   "GCP Project ID length should not less than 6 characters",
+			name:   "GCP Project ID length should not be less than 6 characters",
 			target: "hello",
 			want:   false,
 		},
@@ -650,7 +650,7 @@ func TestIsGCPProjectId(t *testing.T) {
 			want:   true,
 		},
 		{
-			name:   "GCP Project ID length should be greater than 30 characters",
+			name:   "GCP Project ID length should not be greater than 30 characters",
 			target: "thalamus-instinct-teaching-bemadden-word",
 			want:   false,
 		},
@@ -670,7 +670,7 @@ func TestIsGCPProjectId(t *testing.T) {
 			want:   false,
 		},
 		{
-			name:   "GCP Project ID should only hyphens in symbols",
+			name:   "GCP Project ID can only have hyphens and symbols",
 			target: "feebly-chrome_belittle-eyebrow",
 			want:   false,
 		},
@@ -698,7 +698,7 @@ func TestIsGCPProjectId(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			got := IsGCPProjectId(tt.target)
+			got := IsGCPProjectID(tt.target)
 			if got != tt.want {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
