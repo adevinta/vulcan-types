@@ -824,3 +824,35 @@ func TestDetectAssetTypes(t *testing.T) {
 		})
 	}
 }
+
+func TestAssetType_IsValid(t *testing.T) {
+	tests := []struct {
+		name string
+		at   AssetType
+		want bool
+	}{
+		{
+			name: "valid",
+			at:   Hostname,
+			want: true,
+		},
+		{
+			name: "invalid",
+			at:   AssetType("invalid"),
+			want: false,
+		},
+		{
+			name: "zero value",
+			at:   AssetType(""),
+			want: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.at.IsValid(); got != tt.want {
+				t.Errorf("unexpected value: %v", got)
+			}
+		})
+	}
+}

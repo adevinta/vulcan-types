@@ -349,3 +349,13 @@ func DetectAssetTypes(identifier string) ([]AssetType, error) {
 
 	return assetTypes, nil
 }
+
+// IsValid reports whether the [AssetType] is known. The zero value is
+// considered valid.
+func (t AssetType) IsValid() bool {
+	if t == "" {
+		return true
+	}
+	_, err := Parse(string(t))
+	return err == nil
+}
