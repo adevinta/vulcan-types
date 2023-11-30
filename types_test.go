@@ -628,6 +628,45 @@ func TestIsHostname(t *testing.T) {
 	}
 }
 
+func TestIsHostnameNoDnsResolution(t *testing.T) {
+	tests := []struct {
+		name    string
+		target  string
+		want    bool
+		wantErr bool
+	}{
+		{
+			name:   "Domain",
+			target: "adevinta.com",
+			want:   true,
+		},
+		{
+			name:   "Hostname",
+			target: "www.adevinta.com",
+			want:   true,
+		},
+		{
+			name:   "IP",
+			target: "127.0.0.1",
+			want:   false,
+		},
+		{
+			name:   "Garbage",
+			target: "31337",
+			want:   false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			got := IsHostnameNoDnsResolution(tt.target)
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestIsGCPProjectID(t *testing.T) {
 	tests := []struct {
 		name   string

@@ -215,6 +215,21 @@ func IsHostname(target string) bool {
 	return len(r) > 0
 }
 
+// IsHostnameNoDnsResolution returns true if the target is not an IP.
+func IsHostnameNoDnsResolution(target string) bool {
+	// If the target is an IP can not be a hostname.
+	if IsIP(target) {
+		return false
+	}
+
+	// We don't want to onboard TLDs to vulcan
+	if !strings.Contains(target, ".") {
+		return false
+	}
+
+	return true
+}
+
 // IsGCPProjectID returns true if the target is a GCP Project.
 //
 // A GCP project id is the unique, user-assigned id of the project. It must be 6 to 30 lowercase ASCII letters, digits, or hyphens.
