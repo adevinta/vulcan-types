@@ -215,8 +215,8 @@ func IsHostname(target string) bool {
 	return len(r) > 0
 }
 
-// IsHostnameNoDnsResolution returns true if the target is not an IP.
-func IsHostnameNoDnsResolution(target string) bool {
+// IsHostnameNoDNSResolution returns true if the target is not an IP.
+func IsHostnameNoDNSResolution(target string) bool {
 	// If the target is an IP can not be a hostname.
 	if IsIP(target) {
 		return false

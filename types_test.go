@@ -628,7 +628,7 @@ func TestIsHostname(t *testing.T) {
 	}
 }
 
-func TestIsHostnameNoDnsResolution(t *testing.T) {
+func TestIsHostnameNoDNSResolution(t *testing.T) {
 	tests := []struct {
 		name    string
 		target  string
@@ -659,7 +659,7 @@ func TestIsHostnameNoDnsResolution(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			got := IsHostnameNoDnsResolution(tt.target)
+			got := IsHostnameNoDNSResolution(tt.target)
 			if got != tt.want {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
