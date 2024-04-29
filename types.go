@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/docker/distribution/reference"
+	"github.com/distribution/reference"
 	"github.com/miekg/dns"
 )
 
