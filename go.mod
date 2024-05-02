@@ -3,7 +3,7 @@ module github.com/adevinta/vulcan-types
 go 1.18
 
 require (
-	github.com/aws/aws-sdk-go v1.51.30
+	github.com/aws/aws-sdk-go v1.52.0
 	github.com/distribution/reference v0.6.0
 	github.com/google/go-cmp v0.6.0
 	github.com/miekg/dns v1.1.59
