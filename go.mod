@@ -6,14 +6,14 @@ require (
 	github.com/aws/aws-sdk-go v1.55.0
 	github.com/distribution/reference v0.6.0
 	github.com/google/go-cmp v0.6.0
-	github.com/miekg/dns v1.1.61
+	github.com/miekg/dns v1.1.62
 )
 
 require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	golang.org/x/mod v0.18.0 // indirect
-	golang.org/x/net v0.26.0 // indirect
+	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect
 )
