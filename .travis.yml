@@ -1,8 +1,0 @@
-dist: bionic
-language: go
-go:
-  - 1.18
-env:
-  global:
-  - CGO_ENABLED=0
-go_import_path: github.com/adevinta/vulcan-types

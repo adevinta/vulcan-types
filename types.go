@@ -160,7 +160,6 @@ func hasSOARecord(target string) (bool, error) {
 	var r *dns.Msg
 	// Try to get an answer using local configured dns servers.
 	for _, srv := range dnsConf.Servers {
-		r = nil
 		address := fmt.Sprintf("%s:%s", srv, dnsConf.Port)
 
 		r, _, err = c.Exchange(m, address)
