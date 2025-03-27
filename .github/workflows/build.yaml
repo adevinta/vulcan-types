@@ -21,6 +21,11 @@ jobs:
         with:
           go-version: stable
 
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.0
+
       - name: Run tests
         run: go test -short -race -v ./...
 
