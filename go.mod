@@ -1,8 +1,7 @@
 module github.com/adevinta/vulcan-types
 
 go 1.22.0
-
-toolchain go1.24.2
+toolchain go1.24.1
 
 require (
 	github.com/aws/aws-sdk-go v1.55.6
@@ -14,7 +13,7 @@ require (
 require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/net v0.35.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/tools v0.30.0 // indirect
