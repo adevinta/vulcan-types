@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go v1.55.6
 	github.com/distribution/reference v0.6.0
 	github.com/google/go-cmp v0.7.0
-	github.com/miekg/dns v1.1.67
+	github.com/miekg/dns v1.1.68
 )
 
 require (
